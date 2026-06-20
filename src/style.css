@@ -27,7 +27,7 @@ body {
 
 main {
   width: 100%;
-  max-width: 520px;
+  max-width: 600px;
   background: var(--card);
   border-radius: 16px;
   padding: 2rem;
@@ -105,79 +105,93 @@ button:hover {
   color: var(--accent);
 }
 
-/* ── Task List ────────────────────────────────────── */
-#task-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* ── Table ────────────────────────────────────────── */
+#task-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.5rem;
 }
 
-#task-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
+#task-table thead {
+  background: var(--border);
+}
+
+#task-table th {
+  padding: 0.6rem 0.5rem;
+  text-align: left;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+
+#task-table th:first-child {
+  width: 44px;
+  text-align: center;
+}
+
+#task-table th:nth-child(2) {
+  width: 64px;
+  text-align: center;
+}
+
+#task-table th:last-child {
+  width: 130px;
+  text-align: center;
+}
+
+#task-table td {
+  padding: 0.6rem 0.5rem;
   border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+#task-table td:first-child {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+#task-table td:nth-child(2) {
+  text-align: center;
+}
+
+#task-table td:last-child {
+  text-align: center;
+}
+
+#task-table tbody tr {
   transition: background 0.15s;
 }
 
-#task-list li:last-child {
-  border-bottom: none;
-}
-
-#task-list li:hover {
-  background: rgba(56, 189, 248, 0.04);
+#task-table tbody tr:hover {
+  background: rgba(56, 189, 248, 0.05);
 }
 
 /* ── Checkbox ─────────────────────────────────────── */
-.todo-checkbox {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  background: transparent;
+.status-cb {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--success);
   cursor: pointer;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  padding: 0;
-  color: transparent;
-  font-size: 0.7rem;
 }
 
-.todo-checkbox:hover {
-  border-color: var(--accent);
-}
-
-.todo-checkbox.checked {
-  background: var(--success);
-  border-color: var(--success);
-  color: #0f172a;
-}
-
-/* ── Task text ────────────────────────────────────── */
-.task-text {
-  flex: 1;
-  font-size: 0.95rem;
-  cursor: default;
-}
-
-.task-text.done {
+/* ── Done row ─────────────────────────────────────── */
+tr.done td.task-title {
   text-decoration: line-through;
   color: var(--muted);
 }
 
 /* ── Edit input ───────────────────────────────────── */
 .edit-input {
-  flex: 1;
-  padding: 0.35rem 0.5rem;
+  width: 100%;
+  padding: 0.3rem 0.5rem;
   border-radius: 6px;
   border: 1px solid var(--accent);
   background: var(--bg);
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   outline: none;
 }
 
@@ -186,16 +200,16 @@ button:hover {
 }
 
 /* ── Action buttons ───────────────────────────────── */
-.task-actions {
+.actions {
   display: flex;
   gap: 0.3rem;
-  flex-shrink: 0;
+  justify-content: center;
 }
 
 .btn-sm {
   border: none;
   border-radius: 6px;
-  padding: 0.25rem 0.5rem;
+  padding: 0.3rem 0.55rem;
   cursor: pointer;
   font-size: 0.75rem;
   font-weight: 600;
@@ -226,14 +240,13 @@ button:hover {
   color: var(--muted);
   font-size: 0.85rem;
   text-align: right;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 /* ── Empty state ──────────────────────────────────── */
-.empty-state {
-  text-align: center;
+.empty-row td {
+  text-align: center !important;
   color: var(--muted);
   font-style: italic;
-  padding: 2rem 0;
-  font-size: 0.9rem;
+  padding: 1.5rem 0.5rem;
 }

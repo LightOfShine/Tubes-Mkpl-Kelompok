@@ -1,11 +1,6 @@
 /**
  * DOM glue code for the Task Tracker UI.
- * Not unit tested directly (jsdom integration is out of scope for this demo);
- * pure logic lives in app.js and is what continuous testing exercises.
- *
- * Wrapped in an IIFE so that variable declarations do not collide with
- * the function declarations in app.js (both scripts share the global
- * scope when loaded via plain <script> tags in the browser).
+ * Wrapped in an IIFE to avoid global scope collision with app.js.
  */
 /* eslint-env browser */
 (function () {
@@ -48,57 +43,70 @@ function saveTasks() {
 }
 
 function render() {
-  var list = document.getElementById('task-list');
+  var tbody = document.getElementById('task-body');
   var stats = document.getElementById('stats');
-  if (!list || !stats) return;
+  if (!tbody || !stats) return;
 
-  list.innerHTML = '';
+  tbody.innerHTML = '';
   var filtered = filterTasks(tasks, currentFilter);
 
   if (filtered.length === 0) {
-    var emptyLi = document.createElement('li');
-    emptyLi.className = 'empty-state';
-    emptyLi.textContent = 'Belum ada tugas. Tambahkan di atas! ☝️';
-    list.appendChild(emptyLi);
+    var emptyRow = document.createElement('tr');
+    emptyRow.className = 'empty-row';
+    var emptyTd = document.createElement('td');
+    emptyTd.colSpan = 4;
+    emptyTd.textContent = 'Belum ada tugas. Tambahkan tugas baru di atas!';
+    emptyRow.appendChild(emptyTd);
+    tbody.appendChild(emptyRow);
   } else {
-    filtered.forEach(function (task) {
-      var li = document.createElement('li');
+    filtered.forEach(function (task, idx) {
+      var tr = document.createElement('tr');
+      tr.className = task.done ? 'done' : '';
 
-      // Round checkbox button
-      var checkBtn = document.createElement('button');
-      checkBtn.className = 'todo-checkbox' + (task.done ? ' checked' : '');
-      checkBtn.textContent = task.done ? '✓' : '';
-      checkBtn.addEventListener('click', function () {
+      // Column 1: Row number
+      var tdNum = document.createElement('td');
+      tdNum.textContent = idx + 1;
+      tr.appendChild(tdNum);
+
+      // Column 2: Status checkbox
+      var tdStatus = document.createElement('td');
+      var checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'status-cb';
+      checkbox.checked = task.done;
+      checkbox.addEventListener('change', function () {
         tasks = toggleTask(tasks, task.id);
         saveTasks();
         render();
       });
-      li.appendChild(checkBtn);
+      tdStatus.appendChild(checkbox);
+      tr.appendChild(tdStatus);
 
-      // Task title span
-      var span = document.createElement('span');
-      span.className = 'task-text' + (task.done ? ' done' : '');
-      span.textContent = task.title;
-      li.appendChild(span);
+      // Column 3: Task title
+      var tdTitle = document.createElement('td');
+      tdTitle.className = 'task-title';
+      tdTitle.textContent = task.title;
+      tr.appendChild(tdTitle);
 
-      // Action buttons container
+      // Column 4: Action buttons
+      var tdActions = document.createElement('td');
       var actionsDiv = document.createElement('div');
-      actionsDiv.className = 'task-actions';
+      actionsDiv.className = 'actions';
 
       // Edit button
       var editBtn = document.createElement('button');
       editBtn.textContent = 'Edit';
       editBtn.className = 'btn-sm btn-edit';
       editBtn.addEventListener('click', function onEdit() {
-        // Replace span with input
         var input = document.createElement('input');
         input.type = 'text';
         input.className = 'edit-input';
         input.value = task.title;
-        li.replaceChild(input, span);
+        tdTitle.textContent = '';
+        tdTitle.appendChild(input);
         input.focus();
 
-        // Replace Edit with Save
+        // Swap Edit → Save
         var saveBtn = document.createElement('button');
         saveBtn.textContent = 'Simpan';
         saveBtn.className = 'btn-sm btn-save';
@@ -133,9 +141,10 @@ function render() {
 
       actionsDiv.appendChild(editBtn);
       actionsDiv.appendChild(delBtn);
-      li.appendChild(actionsDiv);
+      tdActions.appendChild(actionsDiv);
+      tr.appendChild(tdActions);
 
-      list.appendChild(li);
+      tbody.appendChild(tr);
     });
   }
 
