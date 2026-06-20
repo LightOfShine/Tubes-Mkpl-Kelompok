@@ -2,8 +2,14 @@
  * DOM glue code for the Task Tracker UI.
  * Not unit tested directly (jsdom integration is out of scope for this demo);
  * pure logic lives in app.js and is what continuous testing exercises.
+ *
+ * Wrapped in an IIFE so that `let` declarations do not collide with the
+ * `function` declarations in app.js (both scripts share the global scope
+ * when loaded via plain <script> tags in the browser).
  */
 /* eslint-env browser */
+(function () {
+
 let createTask, toggleTask, removeTask, editTask, filterTasks, getStats;
 
 if (typeof window === 'undefined') {
@@ -86,7 +92,7 @@ function render() {
       const editBtn = document.createElement('button');
       editBtn.textContent = 'Edit';
       editBtn.className = 'btn-edit';
-      editBtn.addEventListener('click', () => {
+      editBtn.addEventListener('click', function onEdit() {
         // Replace title cell with an input
         const input = document.createElement('input');
         input.type = 'text';
@@ -98,7 +104,7 @@ function render() {
 
         // Change Edit button to Save
         editBtn.textContent = 'Simpan';
-        editBtn.removeEventListener('click', arguments.callee);
+        editBtn.removeEventListener('click', onEdit);
         editBtn.addEventListener('click', function saveHandler() {
           try {
             tasks = editTask(tasks, task.id, input.value);
@@ -191,3 +197,5 @@ if (typeof document !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { render, initApp };
 }
+
+})();
