@@ -1,17 +1,19 @@
-name: CI - Build, Lint & Test
+name: CI/CD Pipeline
 
-# Trigger: runs on every push to main and on every pull request targeting main.
-# This is the core of Continuous Integration - every change is automatically
-# compiled/validated and tested before it can be merged.
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build-and-test:
-    name: Build, Lint, and Test
+    name: Build, Lint, Test, and Inspect
     runs-on: ubuntu-latest
 
     strategy:
@@ -21,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -40,16 +44,36 @@ jobs:
       - name: Build project (Continuous Integration compile step)
         run: npm run build
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ github.sha }}
-          path: dist/
-          retention-days: 7
-
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ github.sha }}
           path: coverage/
           retention-days: 7
+
+      - name: SonarCloud Scan (Continuous Inspection)
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Upload artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+  deploy:
+    name: Deploy to GitHub Pages (Continuous Deployment)
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
