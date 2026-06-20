@@ -75,28 +75,143 @@ button {
   color: var(--text);
 }
 
-#task-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* ── Table ─────────────────────────────────────────── */
+#task-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.5rem;
 }
 
-#task-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
+#task-table thead {
+  background: #334155;
+}
+
+#task-table th {
+  padding: 0.6rem 0.5rem;
+  text-align: left;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+
+#task-table th:first-child {
+  width: 40px;
+  text-align: center;
+}
+
+#task-table th:nth-child(2) {
+  width: 60px;
+  text-align: center;
+}
+
+#task-table th:last-child {
+  width: 120px;
+  text-align: center;
+}
+
+#task-table td {
+  padding: 0.55rem 0.5rem;
   border-bottom: 1px solid #334155;
+  vertical-align: middle;
+}
+
+#task-table td:first-child {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+#task-table td:nth-child(2) {
+  text-align: center;
+}
+
+#task-table td:last-child {
+  text-align: center;
+}
+
+#task-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+#task-table tbody tr:hover {
+  background: rgba(56, 189, 248, 0.06);
+}
+
+/* ── Status checkbox ──────────────────────────────── */
+.status-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
-#task-list li.done {
+/* ── Done row ─────────────────────────────────────── */
+tr.done td:nth-child(3) {
   text-decoration: line-through;
   color: var(--muted);
 }
 
+/* ── Inline edit input ────────────────────────────── */
+.edit-input {
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--accent);
+  background: #0f172a;
+  color: var(--text);
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.edit-input:focus {
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+}
+
+/* ── Action buttons ───────────────────────────────── */
+.actions {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.btn-edit, .btn-delete {
+  border: none;
+  border-radius: 4px;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: opacity 0.15s ease;
+}
+
+.btn-edit {
+  background: var(--accent);
+  color: #0f172a;
+}
+
+.btn-delete {
+  background: #f87171;
+  color: #0f172a;
+}
+
+.btn-edit:hover, .btn-delete:hover {
+  opacity: 0.85;
+}
+
+/* ── Stats ────────────────────────────────────────── */
 #stats {
   color: var(--muted);
   font-size: 0.85rem;
   text-align: right;
 }
+
+/* ── Empty state ──────────────────────────────────── */
+.empty-row td {
+  text-align: center !important;
+  color: var(--muted);
+  font-style: italic;
+  padding: 1.5rem 0.5rem;
+}
+

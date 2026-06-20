@@ -41,6 +41,20 @@ function removeTask(tasks, id) {
 }
 
 /**
+ * Edit a task's title by id.
+ * @param {Array} tasks
+ * @param {number} id
+ * @param {string} newTitle
+ * @returns {Array} new tasks array
+ */
+function editTask(tasks, id, newTitle) {
+  if (typeof newTitle !== 'string' || newTitle.trim().length === 0) {
+    throw new Error('Task title must be a non-empty string');
+  }
+  return tasks.map((t) => (t.id === id ? { ...t, title: newTitle.trim() } : t));
+}
+
+/**
  * Filter tasks by status.
  * @param {Array} tasks
  * @param {'all'|'done'|'pending'} status
@@ -70,6 +84,7 @@ if (typeof module !== 'undefined' && module.exports) {
     createTask,
     toggleTask,
     removeTask,
+    editTask,
     filterTasks,
     getStats,
   };

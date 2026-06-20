@@ -2,6 +2,7 @@ const {
   createTask,
   toggleTask,
   removeTask,
+  editTask,
   filterTasks,
   getStats,
 } = require('../src/app');
@@ -66,6 +67,34 @@ describe('removeTask', () => {
     const tasks = [createTask('A')];
     const updated = removeTask(tasks, 12345);
     expect(updated).toHaveLength(1);
+  });
+});
+
+describe('editTask', () => {
+  test('updates the title of matching task', () => {
+    const tasks = [createTask('A'), createTask('B')];
+    const updated = editTask(tasks, tasks[0].id, 'New Title');
+    expect(updated[0].title).toBe('New Title');
+    expect(updated[1].title).toBe('B');
+  });
+
+  test('trims the new title', () => {
+    const tasks = [createTask('A')];
+    const updated = editTask(tasks, tasks[0].id, '  Trimmed Title  ');
+    expect(updated[0].title).toBe('Trimmed Title');
+  });
+
+  test('leaves array unchanged if id not found', () => {
+    const tasks = [createTask('A')];
+    const updated = editTask(tasks, 999999, 'New Title');
+    expect(updated[0].title).toBe('A');
+  });
+
+  test('throws on empty or non-string new title', () => {
+    const tasks = [createTask('A')];
+    expect(() => editTask(tasks, tasks[0].id, '')).toThrow();
+    expect(() => editTask(tasks, tasks[0].id, '   ')).toThrow();
+    expect(() => editTask(tasks, tasks[0].id, null)).toThrow();
   });
 });
 
