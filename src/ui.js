@@ -6,7 +6,7 @@
 /* eslint-env browser */
 let createTask, toggleTask, removeTask, filterTasks, getStats;
 
-if (typeof require !== 'undefined') {
+if (typeof window === 'undefined') {
   const app = require('./app');
   createTask = app.createTask;
   toggleTask = app.toggleTask;
@@ -22,6 +22,13 @@ if (typeof require !== 'undefined') {
 }
 
 let tasks = [];
+try {
+  const saved = localStorage.getItem('ci_cd_tasks');
+  if (saved) tasks = JSON.parse(saved);
+} catch (e) {
+  console.warn('Failed to load tasks from localStorage');
+}
+
 let currentFilter = 'all';
 
 function render() {
@@ -53,6 +60,12 @@ function render() {
 
   const s = getStats(tasks);
   stats.textContent = `${s.done}/${s.total} done (${s.percent}%)`;
+
+  try {
+    localStorage.setItem('ci_cd_tasks', JSON.stringify(tasks));
+  } catch (e) {
+    console.warn('Failed to save tasks to localStorage');
+  }
 }
 
 function initApp() {
