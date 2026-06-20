@@ -3,17 +3,17 @@
  * Not unit tested directly (jsdom integration is out of scope for this demo);
  * pure logic lives in app.js and is what continuous testing exercises.
  *
- * Wrapped in an IIFE so that `let` declarations do not collide with the
- * `function` declarations in app.js (both scripts share the global scope
- * when loaded via plain <script> tags in the browser).
+ * Wrapped in an IIFE so that variable declarations do not collide with
+ * the function declarations in app.js (both scripts share the global
+ * scope when loaded via plain <script> tags in the browser).
  */
 /* eslint-env browser */
 (function () {
 
-let createTask, toggleTask, removeTask, editTask, filterTasks, getStats;
+var createTask, toggleTask, removeTask, editTask, filterTasks, getStats;
 
 if (typeof window === 'undefined') {
-  const app = require('./app');
+  var app = require('./app');
   createTask = app.createTask;
   toggleTask = app.toggleTask;
   removeTask = app.removeTask;
@@ -29,130 +29,17 @@ if (typeof window === 'undefined') {
   getStats = window.getStats;
 }
 
-let tasks = [];
+var tasks = [];
 try {
-  const saved = localStorage.getItem('ci_cd_tasks');
+  var saved = localStorage.getItem('ci_cd_tasks');
   if (saved) tasks = JSON.parse(saved);
 } catch (e) {
   console.warn('Failed to load tasks from localStorage');
 }
 
-let currentFilter = 'all';
+var currentFilter = 'all';
 
-function render() {
-  const tbody = document.getElementById('task-body');
-  const stats = document.getElementById('stats');
-  if (!tbody || !stats) return;
-
-  tbody.innerHTML = '';
-  const filtered = filterTasks(tasks, currentFilter);
-
-  if (filtered.length === 0) {
-    const emptyRow = document.createElement('tr');
-    emptyRow.className = 'empty-row';
-    const emptyTd = document.createElement('td');
-    emptyTd.colSpan = 4;
-    emptyTd.textContent = 'Belum ada tugas. Tambahkan tugas baru di atas!';
-    emptyRow.appendChild(emptyTd);
-    tbody.appendChild(emptyRow);
-  } else {
-    filtered.forEach((task, idx) => {
-      const tr = document.createElement('tr');
-      tr.className = task.done ? 'done' : '';
-
-      // Column 1: Row number
-      const tdNum = document.createElement('td');
-      tdNum.textContent = idx + 1;
-      tr.appendChild(tdNum);
-
-      // Column 2: Status checkbox
-      const tdStatus = document.createElement('td');
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.className = 'status-checkbox';
-      checkbox.checked = task.done;
-      checkbox.addEventListener('change', () => {
-        tasks = toggleTask(tasks, task.id);
-        render();
-      });
-      tdStatus.appendChild(checkbox);
-      tr.appendChild(tdStatus);
-
-      // Column 3: Task title (or edit input)
-      const tdTitle = document.createElement('td');
-      tdTitle.textContent = task.title;
-      tr.appendChild(tdTitle);
-
-      // Column 4: Action buttons
-      const tdActions = document.createElement('td');
-      const actionsDiv = document.createElement('div');
-      actionsDiv.className = 'actions';
-
-      // Edit button
-      const editBtn = document.createElement('button');
-      editBtn.textContent = 'Edit';
-      editBtn.className = 'btn-edit';
-      editBtn.addEventListener('click', function onEdit() {
-        // Replace title cell with an input
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'edit-input';
-        input.value = task.title;
-        tdTitle.textContent = '';
-        tdTitle.appendChild(input);
-        input.focus();
-
-        // Change Edit button to Save
-        editBtn.textContent = 'Simpan';
-        editBtn.removeEventListener('click', onEdit);
-        editBtn.addEventListener('click', function saveHandler() {
-          try {
-            tasks = editTask(tasks, task.id, input.value);
-            render();
-          } catch (err) {
-            input.style.borderColor = '#f87171';
-            console.warn(err.message);
-          }
-        });
-
-        // Also save on Enter key
-        input.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            try {
-              tasks = editTask(tasks, task.id, input.value);
-              render();
-            } catch (err) {
-              input.style.borderColor = '#f87171';
-              console.warn(err.message);
-            }
-          }
-          if (e.key === 'Escape') {
-            render();
-          }
-        });
-      });
-
-      // Delete button
-      const delBtn = document.createElement('button');
-      delBtn.textContent = 'Hapus';
-      delBtn.className = 'btn-delete';
-      delBtn.addEventListener('click', () => {
-        tasks = removeTask(tasks, task.id);
-        render();
-      });
-
-      actionsDiv.appendChild(editBtn);
-      actionsDiv.appendChild(delBtn);
-      tdActions.appendChild(actionsDiv);
-      tr.appendChild(tdActions);
-
-      tbody.appendChild(tr);
-    });
-  }
-
-  const s = getStats(tasks);
-  stats.textContent = `${s.done}/${s.total} done (${s.percent}%)`;
-
+function saveTasks() {
   try {
     localStorage.setItem('ci_cd_tasks', JSON.stringify(tasks));
   } catch (e) {
@@ -160,24 +47,120 @@ function render() {
   }
 }
 
-function initApp() {
-  const form = document.getElementById('task-form');
-  const input = document.getElementById('task-input');
+function render() {
+  var list = document.getElementById('task-list');
+  var stats = document.getElementById('stats');
+  if (!list || !stats) return;
 
-  form.addEventListener('submit', (e) => {
+  list.innerHTML = '';
+  var filtered = filterTasks(tasks, currentFilter);
+
+  if (filtered.length === 0) {
+    var emptyLi = document.createElement('li');
+    emptyLi.className = 'empty-state';
+    emptyLi.textContent = 'Belum ada tugas. Tambahkan di atas! ☝️';
+    list.appendChild(emptyLi);
+  } else {
+    filtered.forEach(function (task) {
+      var li = document.createElement('li');
+
+      // Round checkbox button
+      var checkBtn = document.createElement('button');
+      checkBtn.className = 'todo-checkbox' + (task.done ? ' checked' : '');
+      checkBtn.textContent = task.done ? '✓' : '';
+      checkBtn.addEventListener('click', function () {
+        tasks = toggleTask(tasks, task.id);
+        saveTasks();
+        render();
+      });
+      li.appendChild(checkBtn);
+
+      // Task title span
+      var span = document.createElement('span');
+      span.className = 'task-text' + (task.done ? ' done' : '');
+      span.textContent = task.title;
+      li.appendChild(span);
+
+      // Action buttons container
+      var actionsDiv = document.createElement('div');
+      actionsDiv.className = 'task-actions';
+
+      // Edit button
+      var editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit';
+      editBtn.className = 'btn-sm btn-edit';
+      editBtn.addEventListener('click', function onEdit() {
+        // Replace span with input
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'edit-input';
+        input.value = task.title;
+        li.replaceChild(input, span);
+        input.focus();
+
+        // Replace Edit with Save
+        var saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Simpan';
+        saveBtn.className = 'btn-sm btn-save';
+        actionsDiv.replaceChild(saveBtn, editBtn);
+
+        function doSave() {
+          try {
+            tasks = editTask(tasks, task.id, input.value);
+            saveTasks();
+            render();
+          } catch (err) {
+            input.style.borderColor = '#f87171';
+          }
+        }
+
+        saveBtn.addEventListener('click', doSave);
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') doSave();
+          if (e.key === 'Escape') render();
+        });
+      });
+
+      // Delete button
+      var delBtn = document.createElement('button');
+      delBtn.textContent = 'Hapus';
+      delBtn.className = 'btn-sm btn-delete';
+      delBtn.addEventListener('click', function () {
+        tasks = removeTask(tasks, task.id);
+        saveTasks();
+        render();
+      });
+
+      actionsDiv.appendChild(editBtn);
+      actionsDiv.appendChild(delBtn);
+      li.appendChild(actionsDiv);
+
+      list.appendChild(li);
+    });
+  }
+
+  var s = getStats(tasks);
+  stats.textContent = s.done + '/' + s.total + ' done (' + s.percent + '%)';
+}
+
+function initApp() {
+  var form = document.getElementById('task-form');
+  var input = document.getElementById('task-input');
+
+  form.addEventListener('submit', function (e) {
     e.preventDefault();
     try {
-      tasks = [...tasks, createTask(input.value)];
+      tasks = [].concat(tasks, [createTask(input.value)]);
       input.value = '';
+      saveTasks();
       render();
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn(err.message);
     }
   });
 
-  document.querySelectorAll('[data-filter]').forEach((btn) => {
-    btn.addEventListener('click', () => {
+  document.querySelectorAll('[data-filter]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
       currentFilter = btn.getAttribute('data-filter');
       render();
     });
@@ -195,7 +178,7 @@ if (typeof document !== 'undefined') {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { render, initApp };
+  module.exports = { render: render, initApp: initApp };
 }
 
 })();
