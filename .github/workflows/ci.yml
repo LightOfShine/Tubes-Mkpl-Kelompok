@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [main, continuous-deployment]
   pull_request:
-    branches: [main]
+    branches: [main, continuous-deployment]
 
 permissions:
   contents: read
@@ -92,7 +92,7 @@ jobs:
     name: Continuous Deployment
     needs: continuous-inspection
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/continuous-deployment')
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
