@@ -12,24 +12,43 @@ permissions:
   id-token: write
 
 jobs:
-  build-and-test:
-    name: Build, Lint, Test, and Inspect
+  continuous-integration:
+    name: Continuous Integration
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: dist/
+
+  continuous-testing:
+    name: Continuous Testing
+    needs: continuous-integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
           cache: 'npm'
 
       - name: Install dependencies
@@ -38,39 +57,57 @@ jobs:
       - name: Lint source code
         run: npm run lint
 
-      - name: Run automated tests (Continuous Testing)
+      - name: Run automated tests
         run: npm test
-
-      - name: Build project (Continuous Integration compile step)
-        run: npm run build
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ github.sha }}
+          name: coverage-artifact
           path: coverage/
-          retention-days: 7
 
-      - name: SonarCloud Scan (Continuous Inspection)
+  continuous-inspection:
+    name: Continuous Inspection
+    needs: continuous-testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-artifact
+          path: coverage/
+
+      - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Upload artifact for GitHub Pages
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist/
-
-  deploy:
-    name: Deploy to GitHub Pages (Continuous Deployment)
-    needs: build-and-test
+  continuous-deployment:
+    name: Continuous Deployment
+    needs: continuous-inspection
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+          path: dist/
+
+      - name: Upload artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
