@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Tracker - CI/CD Demo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <h1>Task Tracker</h1>
+    <p class="subtitle">Demo aplikasi untuk Tugas Besar CI/CD</p>
+
+    <form id="task-form">
+      <input id="task-input" type="text" placeholder="Tambah tugas baru..." required />
+      <button type="submit">Tambah</button>
+    </form>
+
+    <div class="filters">
+      <button data-filter="all">Semua</button>
+      <button data-filter="pending">Belum Selesai</button>
+      <button data-filter="done">Selesai</button>
+    </div>
+
+    <ul id="task-list"></ul>
+    <p id="stats">0/0 done (0%)</p>
+  </main>
+
+  <script src="ui.js"></script>
+</body>
+</html>
