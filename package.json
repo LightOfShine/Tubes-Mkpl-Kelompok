@@ -19,7 +19,11 @@
     "collectCoverageFrom": [
       "src/**/*.js"
     ],
-    "coverageDirectory": "coverage"
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "lcov",
+      "text"
+    ]
   },
   "license": "MIT"
 }
