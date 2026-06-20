@@ -4,13 +4,22 @@
  * pure logic lives in app.js and is what continuous testing exercises.
  */
 /* eslint-env browser */
-const {
-  createTask,
-  toggleTask,
-  removeTask,
-  filterTasks,
-  getStats,
-} = require('./app');
+let createTask, toggleTask, removeTask, filterTasks, getStats;
+
+if (typeof require !== 'undefined') {
+  const app = require('./app');
+  createTask = app.createTask;
+  toggleTask = app.toggleTask;
+  removeTask = app.removeTask;
+  filterTasks = app.filterTasks;
+  getStats = app.getStats;
+} else {
+  createTask = window.createTask;
+  toggleTask = window.toggleTask;
+  removeTask = window.removeTask;
+  filterTasks = window.filterTasks;
+  getStats = window.getStats;
+}
 
 let tasks = [];
 let currentFilter = 'all';
@@ -76,4 +85,6 @@ if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', initApp);
 }
 
-module.exports = { render, initApp };
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { render, initApp };
+}

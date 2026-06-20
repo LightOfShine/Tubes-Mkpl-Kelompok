@@ -64,10 +64,12 @@ function getStats(tasks) {
   return { total, done, percent };
 }
 
-module.exports = {
-  createTask,
-  toggleTask,
-  removeTask,
-  filterTasks,
-  getStats,
-};
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    createTask,
+    toggleTask,
+    removeTask,
+    filterTasks,
+    getStats,
+  };
+}
