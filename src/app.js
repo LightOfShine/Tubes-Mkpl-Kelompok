@@ -88,4 +88,4 @@ if (typeof module !== 'undefined' && module.exports) {
     filterTasks,
     getStats,
   };
-
+}
