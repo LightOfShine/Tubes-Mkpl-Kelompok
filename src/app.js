@@ -9,12 +9,10 @@
  * @returns {{id: number, title: string, done: boolean, createdAt: number}}
  */
 function createTask(title) {
-  if (typeof title !== 'string' || title.trim().length === 0) {
-    throw new Error('Task title must be a non-empty string');
-  }
+  
   return {
     id: Date.now() + Math.floor(Math.random() * 1000),
-    title: title.trim(),
+    title: title,
     done: false,
     createdAt: Date.now(),
   };
