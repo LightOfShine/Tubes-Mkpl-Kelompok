@@ -1,182 +1,253 @@
-# Task Tracker — CI/CD Pipeline Demo
+# 📝 Task Tracker — CI/CD Pipeline Demo
 
-Aplikasi static web sederhana (Task Tracker) yang digunakan sebagai proyek demo
-untuk Tugas Besar Manajemen Konfigurasi dan Evolusi PL — implementasi pipeline
-CI/CD lengkap menggunakan GitHub Actions: **Continuous Integration**,
-**Continuous Testing**, **Continuous Inspection (SonarCloud)**, dan
-**Continuous Deployment (GitHub Pages)**.
+> **Tugas Besar Manajemen Konfigurasi dan Evolusi Perangkat Lunak**
 
----
+Ini adalah aplikasi **To-Do List** sederhana yang dilengkapi dengan pipeline **CI/CD** (Continuous Integration / Continuous Deployment) otomatis.
 
-## 1. Struktur Proyek
-
-```
-cicd-demo/
-├── .github/workflows/
-│   ├── ci.yml              # CI: install, lint, test, build
-│   ├── sonarcloud.yml      # Continuous Inspection via SonarCloud
-│   └── deploy.yml          # CD: build + deploy ke GitHub Pages
-├── src/
-│   ├── app.js               # Logic murni (createTask, toggleTask, dll) — diuji unit test
-│   ├── ui.js                 # Kode DOM yang memakai logic dari app.js
-│   ├── index.html
-│   └── style.css
-├── tests/
-│   └── app.test.js           # 16 unit test (Jest) untuk src/app.js
-├── build.js                  # Build script: validasi + copy src/ -> dist/
-├── package.json
-├── .eslintrc.js
-├── sonar-project.properties
-└── .gitignore
-```
+🔗 **Website Live:** [https://lightofshine.github.io/Tubes-Mkpl-Kelompok/](https://lightofshine.github.io/Tubes-Mkpl-Kelompok/)
 
 ---
 
-## 2. Setup Lokal
+## 🤔 Apa Sih CI/CD Itu?
+
+Bayangkan Anda punya pabrik kue. Setiap kali membuat kue baru, Anda harus:
+1. 🔨 **Memanggang** (Build) — apakah adonannya bisa dipanggang?
+2. 🧪 **Mencicipi** (Test) — apakah rasanya enak?
+3. 🔍 **Memeriksa** (Inspect) — apakah bentuknya rapi?
+4. 🚀 **Mengirim** (Deploy) — kirim ke toko agar pelanggan bisa beli
+
+**CI/CD melakukan semua itu secara OTOMATIS untuk kode kita.**
+
+Setiap kali kita `git push` (mengirim kode ke GitHub), sebuah "robot" bernama **GitHub Actions** akan otomatis:
+
+```
+Push Kode → Build → Test → Inspect → Deploy ke Website
+```
+
+Jika salah satu tahap gagal, kode **tidak akan sampai** ke website. Jadi website selalu aman! ✅
+
+---
+
+## 🏗️ Struktur Proyek (Isi Folder)
+
+```
+📁 cicd-demo/
+│
+├── 📁 .github/workflows/
+│   └── 📄 ci.yml                ← 🤖 "Otak" pipeline CI/CD (4 tahap otomatis)
+│
+├── 📁 src/                      ← 💻 Kode aplikasi
+│   ├── 📄 index.html            ← Halaman web (struktur tabel)
+│   ├── 📄 style.css             ← Tampilan visual (warna, font, dll)
+│   ├── 📄 app.js                ← ⭐ Logika inti (fungsi-fungsi murni)
+│   └── 📄 ui.js                 ← Kode tampilan (menghubungkan logika ke layar)
+│
+├── 📁 tests/
+│   └── 📄 app.test.js           ← 🧪 20 unit test otomatis
+│
+├── 📄 build.js                  ← 🔨 Script untuk build (copy + validasi)
+├── 📄 sonar-project.properties  ← 🔍 Konfigurasi SonarCloud
+├── 📄 .eslintrc.js              ← 📏 Aturan penulisan kode (linting)
+├── 📄 package.json              ← 📦 Daftar dependensi & script
+└── 📄 .gitignore                ← 🚫 File yang tidak perlu di-upload
+```
+
+---
+
+## 🎯 Tentang Aplikasi: To-Do List
+
+Aplikasi sederhana untuk mencatat daftar tugas, dengan fitur:
+
+| Fitur | Cara Pakai |
+|-------|------------|
+| ➕ **Tambah tugas** | Ketik di kotak input, klik "Tambah" |
+| ✏️ **Edit tugas** | Klik tombol "Edit" → ubah judul → klik "Simpan" |
+| ☑️ **Tandai selesai** | Centang checkbox pada tugas |
+| 🗑️ **Hapus tugas** | Klik tombol "Hapus" |
+| 🔍 **Filter** | Klik "Semua" / "Belum Selesai" / "Selesai" |
+| 💾 **Data tersimpan** | Data disimpan di browser (tidak hilang walau refresh) |
+
+Data ditampilkan dalam **tabel** dengan kolom: **No**, **Status**, **Nama Tugas**, **Aksi**.
+
+---
+
+## ⚙️ Cara Menjalankan di Komputer Sendiri
 
 ```bash
+# 1. Install semua yang dibutuhkan
 npm install
-npm run lint     # ESLint
-npm test         # Jest, 16 test + coverage report
-npm run build    # Hasil ada di folder dist/
+
+# 2. Cek gaya penulisan kode (linting)
+npm run lint
+
+# 3. Jalankan semua test otomatis
+npm test
+
+# 4. Build proyek (copy src → dist)
+npm run build
+
+# 5. Jalankan website secara lokal
+npm start
 ```
 
 ---
 
-## 3. Penjelasan Workflow GitHub Actions
+## 🤖 Pipeline CI/CD — 4 Tahap Otomatis
 
-### a. `ci.yml` — Continuous Integration & Continuous Testing
+File konfigurasi: `.github/workflows/ci.yml`
 
-**Trigger:** setiap `push` ke branch `main` dan setiap `pull_request` yang
-menargetkan `main`.
+Setiap kali ada `git push` ke branch `main`, **4 tahap** ini berjalan otomatis secara berurutan:
 
-**Langkah-langkah:**
-1. `actions/checkout@v4` — clone repo ke runner.
-2. `actions/setup-node@v4` — install Node.js 20 dengan cache npm supaya
-   build lebih cepat di run berikutnya.
-3. `npm ci` — install dependency persis sesuai `package-lock.json` (lebih
-   deterministik daripada `npm install`, mencegah masalah "works on my
-   machine").
-4. `npm run lint` — menjalankan ESLint. Jika ada syntax error atau pelanggaran
-   aturan lint, step ini **gagal** dan seluruh job berhenti (fail fast) —
-   ini mencegah kode yang rusak masuk ke `main`.
-5. `npm test` — menjalankan 16 unit test dengan Jest mencakup fungsi inti:
-   `createTask`, `toggleTask`, `removeTask`, `filterTasks`, `getStats`.
-   Jika satu saja gagal, job gagal.
-6. `npm run build` — compile/bundling sederhana: memvalidasi sintaks tiap
-   file JS dan menyalin `src/` ke `dist/`. Jika ada file yang hilang atau
-   sintaks salah, build gagal dengan pesan error yang jelas.
-7. Upload artifact (`dist/` dan `coverage/`) supaya hasil build dan laporan
-   coverage bisa diunduh dari halaman Actions run.
+### Tahap 1: 🔨 Continuous Integration (Build)
 
-**Variabel/Environment:** Tidak ada secret khusus diperlukan untuk job ini —
-hanya `GITHUB_TOKEN` bawaan GitHub Actions (otomatis tersedia).
+**Pertanyaan yang dijawab:** *"Apakah kodenya bisa dikompilasi?"*
 
-### b. `sonarcloud.yml` — Continuous Inspection
+Yang dilakukan:
+1. Download kode dari GitHub
+2. Install Node.js dan semua dependensi (`npm ci`)
+3. Jalankan `npm run build` — script `build.js` akan:
+   - Memeriksa apakah syntax JavaScript-nya benar
+   - Menyalin file dari folder `src/` ke folder `dist/`
+   - Jika ada syntax error → **GAGAL** ❌
 
-**Trigger:** sama seperti CI, `push`/`pull_request` ke `main`.
-
-**Langkah penting:**
-- `fetch-depth: 0` saat checkout — SonarCloud butuh history git lengkap
-  (bukan shallow clone) supaya bisa menghitung *new code* vs *old code* dan
-  blame info dengan akurat.
-- Menjalankan test dulu (`npm test`) supaya file `coverage/lcov.info`
-  ter-generate, lalu SonarCloud scanner membaca file itu untuk menampilkan
-  metrik code coverage di dashboard.
-- Action `SonarSource/sonarcloud-github-action@master` membaca konfigurasi
-  dari `sonar-project.properties` dan mengirim hasil analisis ke
-  SonarCloud, sekaligus memberi status check pada PR (Quality Gate).
-
-**Secret yang dibutuhkan (disetel di Settings → Secrets and variables → Actions):**
-- `SONAR_TOKEN` — token dari SonarCloud (My Account → Security → Generate Token).
-- `GITHUB_TOKEN` — otomatis disediakan GitHub, tidak perlu disetel manual.
-
-### c. `deploy.yml` — Continuous Deployment/Delivery
-
-**Trigger:** hanya `push` ke `main` (artinya hanya kode yang sudah lolos
-review/merge yang di-deploy) + `workflow_dispatch` untuk trigger manual saat
-demo.
-
-**Dua job terpisah:**
-1. **build** — install dependency, jalankan test lagi (safety net terakhir
-   sebelum deploy), build ke `dist/`, lalu upload sebagai *Pages artifact*
-   menggunakan `actions/upload-pages-artifact@v3`.
-2. **deploy** — mengambil artifact dari job `build` (lewat `needs: build`)
-   dan mem-publish ke GitHub Pages menggunakan `actions/deploy-pages@v4`.
-   URL hasil deploy otomatis muncul di output job (`page_url`).
-
-**Permission khusus** (`pages: write`, `id-token: write`) diperlukan supaya
-job punya izin mem-publish ke GitHub Pages menggunakan OIDC token, tanpa
-perlu menyimpan token/password manual sebagai secret.
+**Jika gagal:** Semua tahap berikutnya **tidak jalan**.
 
 ---
 
-## 4. Cara Setup di GitHub (langkah lengkap untuk video demo)
+### Tahap 2: 🧪 Continuous Testing
 
-1. Buat repository baru di GitHub (public, agar SonarCloud free tier &
-   GitHub Pages bisa dipakai gratis tanpa biaya).
-2. Push seluruh isi folder ini ke repo tersebut (lihat bagian 6 di bawah).
-3. **Aktifkan GitHub Pages:** Settings → Pages → Source: pilih
-   **GitHub Actions** (bukan branch `gh-pages`, karena kita pakai
-   `actions/deploy-pages`).
-4. **Setup SonarCloud:**
-   - Buka https://sonarcloud.io, login dengan akun GitHub.
-   - "+" → Analyze new project → pilih repo ini.
-   - Catat **Organization Key** dan **Project Key**, masukkan ke
-     `sonar-project.properties`.
-   - Buka My Account → Security → Generate Token → simpan tokennya.
-   - Di GitHub repo: Settings → Secrets and variables → Actions →
-     New repository secret → nama `SONAR_TOKEN`, isi dengan token tadi.
-5. Push perubahan apa pun ke `main` atau buka Pull Request untuk memicu
-   ketiga workflow di atas. Lihat hasilnya di tab **Actions**.
+**Pertanyaan yang dijawab:** *"Apakah kodenya berjalan sesuai harapan?"*
 
----
+Yang dilakukan:
+1. Jalankan `npm run lint` — memeriksa gaya penulisan kode (ESLint)
+2. Jalankan `npm test` — menjalankan **20 unit test** menggunakan Jest
 
-## 5. Simulasi yang Perlu Didemokan (sesuai instruksi tugas)
+**20 test ini menguji:**
 
-### Continuous Integration — sukses & gagal
-- **Sukses:** buat branch baru, ubah `src/app.js` secara valid (misal tambah
-  fungsi baru), buka PR ke `main`. Tunjukkan job `ci.yml` hijau karena
-  lint, test, dan build semua lolos.
-- **Gagal:** sengaja rusak sintaks, misal hapus tanda kurung tutup di
-  `src/app.js`, lalu push ke branch/PR yang sama. Tunjukkan step **Lint**
-  atau **Build** merah, dan jelaskan pesan error yang muncul di log.
+| Fungsi | Apa yang Diuji | Jumlah Test |
+|--------|---------------|:-----------:|
+| `createTask()` | Buat tugas baru, validasi input kosong, trim spasi | 5 |
+| `toggleTask()` | Ubah status selesai/belum, cek array tidak berubah | 3 |
+| `removeTask()` | Hapus tugas, ID tidak ditemukan | 2 |
+| `editTask()` | Edit judul, trim spasi, validasi input | 4 |
+| `filterTasks()` | Filter selesai, belum selesai, semua | 3 |
+| `getStats()` | Hitung statistik, list kosong, semua selesai | 3 |
 
-### Continuous Testing — sukses & gagal
-- **Sukses:** jalankan PR dengan kode yang tidak mengubah logic — semua 16
-  test lolos seperti biasa.
-- **Gagal:** ubah salah satu fungsi di `src/app.js` agar berperilaku salah,
-  contoh: di `getStats`, ganti `Math.round((done / total) * 100)` menjadi
-  nilai yang salah (misal selalu `0`). Push ke PR — step **Run automated
-  tests** akan merah karena assertion `expect(stats).toEqual(...)` gagal.
-  Jelaskan di video baris log Jest yang menunjukkan *expected* vs
-  *received*.
+**Hasil:** 20/20 test ✅ PASS, Coverage **100%** pada `app.js`
 
-### Continuous Inspection — SonarCloud
-- Tunjukkan dashboard SonarCloud project setelah analisis pertama selesai
-  (Quality Gate, code smells, coverage %, duplications).
-  Lakukan perubahan kecil yang sengaja menimbulkan "code smell" (misal
-  variabel tidak terpakai atau fungsi terlalu kompleks), push, lalu
-  tunjukkan SonarCloud mendeteksinya dan check pada PR menjadi gagal/warning.
-
-### Continuous Deployment — GitHub Pages
-- Setelah PR di-merge ke `main`, tunjukkan job `deploy.yml` berjalan
-  otomatis di tab Actions, lalu buka URL GitHub Pages yang dihasilkan
-  (`https://<username>.github.io/<repo>/`) untuk membuktikan perubahan
-  sudah live tanpa langkah manual.
+**Jika gagal:** Tahap Inspection dan Deployment **tidak jalan**.
 
 ---
 
-## 6. Push ke GitHub (jika belum pernah)
+### Tahap 3: 🔍 Continuous Inspection (SonarCloud)
 
-```bash
-git init
-git add .
-git commit -m "Initial commit: task tracker app with CI/CD pipeline"
-git branch -M main
-git remote add origin https://github.com/<username>/<repo-name>.git
-git push -u origin main
-```
+**Pertanyaan yang dijawab:** *"Apakah kualitas kodenya bagus?"*
 
-Setelah push pertama, buka tab **Actions** di GitHub untuk melihat ketiga
-workflow berjalan otomatis.
+Yang dilakukan:
+1. Download laporan coverage dari tahap sebelumnya
+2. Kirim kode ke **SonarCloud** untuk dianalisis
+3. SonarCloud memeriksa:
+   - **Bugs** — ada bug tersembunyi?
+   - **Security** — ada celah keamanan?
+   - **Code Smells** — ada kode yang kurang rapi?
+   - **Coverage** — berapa persen kode yang diuji?
+
+**Quality Gate:** SonarCloud memberikan nilai "Passed" ✅ atau "Failed" ❌
+
+🔗 **Dashboard:** [SonarCloud Project](https://sonarcloud.io/project/overview?id=LightOfShine_Tubes-Mkpl-Kelompok)
+
+---
+
+### Tahap 4: 🚀 Continuous Deployment (GitHub Pages)
+
+**Pertanyaan yang dijawab:** *"Apakah website-nya sudah bisa diakses publik?"*
+
+Yang dilakukan:
+1. Ambil hasil build dari Tahap 1
+2. Upload ke GitHub Pages
+3. Website langsung live di internet! 🌐
+
+🔗 **Website:** [https://lightofshine.github.io/Tubes-Mkpl-Kelompok/](https://lightofshine.github.io/Tubes-Mkpl-Kelompok/)
+
+**Catatan:** Tahap ini hanya berjalan jika push ke branch `main` (bukan pull request).
+
+---
+
+## 🔑 Kenapa `app.js` dan `ui.js` Dipisah?
+
+Ini menggunakan prinsip **Separation of Concerns** (Pemisahan Tanggung Jawab):
+
+| File | Isi | Bisa Diuji Otomatis? |
+|------|-----|:--------------------:|
+| `app.js` | Logika murni (pure functions): buat, edit, hapus, filter tugas | ✅ Ya (100% coverage) |
+| `ui.js` | Kode tampilan (DOM): menampilkan data ke layar browser | ❌ Tidak (butuh browser) |
+
+**Analoginya:**
+- `app.js` = **Koki** — tugasnya memasak (logika). Bisa diuji: "apakah masakannya enak?"
+- `ui.js` = **Pelayan** — tugasnya menyajikan ke meja (tampilan). Cara penyajiannya berbeda-beda.
+
+Dengan memisahkan keduanya, kita bisa menguji "koki" tanpa perlu "restoran" (browser).
+
+---
+
+## 📊 Cara Melihat Hasil Pipeline
+
+1. Buka repository di GitHub
+2. Klik tab **Actions** di bagian atas
+3. Terlihat daftar semua pipeline yang pernah berjalan
+4. Klik salah satu untuk melihat detail setiap tahap
+5. ✅ Hijau = sukses, ❌ Merah = gagal
+
+---
+
+## 🧪 Skenario Demo Kegagalan
+
+### Demo 1: Build Gagal (Continuous Integration ❌)
+
+**Cara:** Hapus tanda `}` penutup di fungsi `createTask` pada `app.js` (syntax error).
+
+**Hasil:** Tahap 1 (Build) langsung gagal. Tahap 2, 3, 4 tidak berjalan.
+
+**Kesimpulan:** CI menangkap kesalahan penulisan kode sedini mungkin.
+
+---
+
+### Demo 2: Test Gagal (Continuous Testing ❌)
+
+**Cara:** Hapus validasi `if` dan `.trim()` di fungsi `createTask` pada `app.js` (syntax benar, tapi logika salah).
+
+**Hasil:** Tahap 1 (Build) sukses ✅, tapi Tahap 2 (Test) gagal karena 3 test tidak lolos. Tahap 3, 4 tidak berjalan.
+
+**Kesimpulan:** CT memastikan kode tidak hanya bisa di-build, tapi juga berjalan **sesuai harapan**.
+
+---
+
+### Demo 3: Semua Sukses ✅
+
+**Cara:** Kembalikan kode ke semula, push lagi.
+
+**Hasil:** Semua 4 tahap hijau. Website otomatis ter-deploy.
+
+---
+
+## 🔧 Teknologi yang Digunakan
+
+| Teknologi | Fungsi |
+|-----------|--------|
+| **JavaScript** | Bahasa pemrograman utama |
+| **HTML & CSS** | Tampilan website |
+| **Jest** | Framework unit testing |
+| **ESLint** | Linter (pemeriksa gaya kode) |
+| **GitHub Actions** | Platform CI/CD (otomatisasi pipeline) |
+| **SonarCloud** | Inspeksi kualitas kode |
+| **GitHub Pages** | Hosting website (gratis) |
+
+---
+
+## 👥 Kelompok
+
+Tubes Manajemen Konfigurasi dan Evolusi Perangkat Lunak
+
+---
+
+> **Ringkasan:** Setiap `git push` → Robot GitHub Actions otomatis Build → Test → Inspect → Deploy. Jika ada yang gagal, website tidak ter-update. Jika semua lolos, website langsung live. Itulah kekuatan CI/CD! 🚀
